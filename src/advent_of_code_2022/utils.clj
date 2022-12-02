@@ -18,3 +18,10 @@
 
 (defn sum [x]
   (reduce + x))
+
+(defn split-whitespace [s]
+  (clojure.string/split s #"\s+"))
+
+(def line-fields (comp #(map split-whitespace %) lines))
+
+(def input-line-fields (comp line-fields get-input))
