@@ -1,5 +1,6 @@
 (ns advent-of-code-2022.core
-  (:require [advent-of-code-2022.utils :as utils]))
+  (:require [advent-of-code-2022.utils :as utils]
+             [advent-of-code-2022.day3 :as day3]))
 
 (defn day1 [x]
   (let [groups (utils/input-newline-separated-groups x)
@@ -54,6 +55,3 @@
   (let [line-pairs (utils/input-line-fields x)
         scores (map #(apply score %) line-pairs)]
     (utils/sum scores)))
-
-
-
