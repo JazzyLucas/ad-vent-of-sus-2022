@@ -1,7 +1,8 @@
 (ns advent-of-code-2022.core
   (:require [advent-of-code-2022.utils :as utils]
             [advent-of-code-2022.day3 :as day3]
-            [advent-of-code-2022.day4 :as day4]))
+            [advent-of-code-2022.day4 :as day4]
+            [advent-of-code-2022.day5 :as day5]))
 
 (defn day1 [x]
   (let [groups (utils/input-newline-separated-groups x)
