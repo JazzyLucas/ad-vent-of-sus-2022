@@ -61,3 +61,10 @@
       (go (+ idx 1) (cons (get index-map idx) result))
       result))
   (reverse (go 0 '())))
+
+(defn zip [a b]
+  (defn go [a b r]
+    (if (or (empty? a) (empty? b))
+      r
+      (go (rest a) (rest b) (cons (list (first a) (first b)) r))))
+  (reverse (go a b '())))
