@@ -1,10 +1,12 @@
-(ns advent-of-code-2022.utils)
+(ns advent-of-code-2022.utils
+  (:require [clojure.set :as set]
+            [clojure.string :as str]))
 
 (defn get-input [x]
   (let [filename (str "inputs/" x)]
     (slurp filename)))
 
-(def lines clojure.string/split-lines)
+(def lines str/split-lines)
 
 (def input-lines (comp lines get-input))
 
@@ -20,7 +22,7 @@
   (reduce + x))
 
 (defn split-whitespace [s]
-  (clojure.string/split s #"\s+"))
+  (str/split s #"\s+"))
 
 (def line-fields (comp #(map split-whitespace %) lines))
 
@@ -46,3 +48,23 @@
               tail)))))
     )
   (reverse (map reverse (go 0 '() x))))
+
+(defn seq-to-index-map [seq]
+  (defn reducer [a c]
+    (let [[current-map, idx] a]
+      (list (conj current-map [idx, c]) (+ idx 1))))
+  (nth (reduce reducer [{} 0] seq) 0))
+
+(defn index-map-to-seq [index-map]
+  (defn go [idx result]
+    (if (contains? index-map idx)
+      (go (+ idx 1) (cons (get index-map idx) result))
+      result))
+  (reverse (go 0 '())))
+
+(defn zip [a b]
+  (defn go [a b r]
+    (if (or (empty? a) (empty? b))
+      r
+      (go (rest a) (rest b) (cons (list (first a) (first b)) r))))
+  (reverse (go a b '())))
