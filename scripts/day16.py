@@ -32,36 +32,53 @@ for input_file in ["16a", "16b"]:
         return dp("AA", 30, frozenset())
 
     def part2():
+        dist_to = {}
+        for valve, (cost, neighbors) in valves.items():
+            dist_to[valve] = {neighbor: 1 for neighbor in neighbors}
+        for _ in range(len(dist_to)):
+            for valve, dists in dist_to.items():
+                for neighbor in list(dists):
+                    for neighbor_neighbor, neighbor_neighbor_dist in dist_to[neighbor].items():
+                        if neighbor_neighbor not in dists:
+                            dists[neighbor_neighbor] = neighbor_neighbor_dist + 1
+        for entry in list(dist_to):
+            if valves[entry][0] == 0 and entry != "AA":
+                del dist_to[entry]
+        for entry, neighbors in dist_to.items():
+            for neighbor in list(neighbors):
+                if neighbor not in dist_to and neighbor != "AA":
+                    del dist_to[entry][neighbor]
+
         @cache
-        def dp(human, elephant, minutes, open):
-            if minutes <= 1:
+        def dp(human, elephant, human_minutes, elephant_minutes, open):
+            if human_minutes <= 1 and elephant_minutes <= 1:
                 return 0
 
             best = 0
-            for human_neighbor, elephant_neighbor in product(valves[human][1], valves[elephant][1]):
-                if human not in open and valves[human][0] > 0 and elephant not in open and valves[elephant][0] > 0 and human != elephant:
+            for human_neighbor, elephant_neighbor in product(dist_to[human], dist_to[elephant]):
+                if human not in open and valves[human][0] > 0 and elephant not in open and valves[elephant][0] > 0 and human != elephant and human_minutes > 1 and elephant_minutes > 1:
                     best = max(
                         best,
-                        (minutes - 1) * valves[human][0] + (minutes - 1) * valves[elephant][0] +
-                        dp(human, elephant, minutes - 1, open | {human, elephant})
+                        (human_minutes - 1) * valves[human][0] + (elephant_minutes - 1) * valves[elephant][0] +
+                        dp(human, elephant, human_minutes - 1, elephant_minutes - 1, open | {human, elephant})
                     )
-                if human not in open and valves[human][0] > 0:
+                if human not in open and valves[human][0] > 0 and human_minutes > 1:
                     best = max(
                         best,
-                        (minutes - 1) * valves[human][0] +
-                        dp(human, elephant_neighbor, minutes - 1, open | {human})
+                        (human_minutes - 1) * valves[human][0] +
+                        dp(human, elephant_neighbor, human_minutes - 1, elephant_minutes - dist_to[elephant][elephant_neighbor], open | {human})
                     )
-                if elephant not in open and valves[elephant][0] > 0:
+                if elephant not in open and valves[elephant][0] > 0 and elephant_minutes > 1:
                     best = max(
                         best,
-                        (minutes - 1) * valves[elephant][0] +
-                        dp(human_neighbor, elephant, minutes - 1, open | {elephant})
+                        (elephant_minutes - 1) * valves[elephant][0] +
+                        dp(human_neighbor, elephant, human_minutes - dist_to[human][human_neighbor], elephant_minutes - 1, open | {elephant})
                     )
-                best = max(best, dp(human_neighbor, elephant_neighbor, minutes - 1, open))
+                best = max(best, dp(human_neighbor, elephant_neighbor, human_minutes - dist_to[human][human_neighbor], elephant_minutes - dist_to[elephant][elephant_neighbor], open))
 
             return best
 
-        return dp("AA", "AA", 26, frozenset())
+        return dp("AA", "AA", 5, 5, frozenset())
 
 
     print(input_file, part2())
