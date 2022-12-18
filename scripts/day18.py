@@ -5,8 +5,11 @@ from common import *
 from itertools import *
 from functools import *
 import re
+import sys
 
-for input_file in ["18a", "18a2", "18b"]:
+sys.setrecursionlimit(1_000_000)
+
+for input_file in ["18a3", "18a", "18a2", "18b"]:
     ls = lines(aoc_input(input_file))
     triples = [tuple(int(x) for x in line.split(",")) for line in ls]
 
@@ -100,7 +103,7 @@ for input_file in ["18a", "18a2", "18b"]:
                 return lambda x: (x[0], x[1])
 
         def edges(rect):
-            return [(a, b) for a, b in permutations(rect, 2) if sum(1 for c, d in zip(a, b) if c == d) == 2]
+            return frozenset([frozenset([a, b]) for a, b in permutations(rect, 2) if sum(1 for c, d in zip(a, b) if c == d) == 2])
 
         def fan(edge, axis):
             a, b = edge
@@ -122,33 +125,44 @@ for input_file in ["18a", "18a2", "18b"]:
             plus_y = frozenset((x, y + 1, z) for x, y, z in rect)
             minus_y = frozenset((x, y - 1, z) for x, y, z in rect)
             plus_z = frozenset((x, y, z + 1) for x, y, z in rect)
-            minus_z = frozenset((x, y, z + 1) for x, y, z in rect)
+            minus_z = frozenset((x, y, z - 1) for x, y, z in rect)
 
             rs = [plus_x, minus_x, plus_y, minus_y, plus_z, minus_z]
-            pluses = [plus_x, plus_y, plus_z]
-            minuses = [minus_x, minus_y, minus_z]
+            pluses = frozenset([plus_x, plus_y, plus_z])
+            minuses = frozenset([minus_x, minus_y, minus_z])
 
             ret = []
 
             for edge in es:
-                candidates = [r for r in rs if edge in r]
+                candidates = [r for r in rs if edge & r == edge]
                 assert len(candidates) == 1
+
+                heading_plus = candidates[0] in pluses
+
                 a, b = fan(edge, orientation(rect))
-                c = [a, candidates[0], b]
-                if up_is_positive == candidates[0] in pluses:
-                    c = c[::-1]
+                if up_is_positive:
+                    c = [(b, not heading_plus), (candidates[0], up_is_positive), (a, heading_plus)]
+                else:
+                    c = [(a, not heading_plus), (candidates[0], up_is_positive), (b, heading_plus)]
                 ret.append(c)
 
             return ret
 
         seen = set()
         def dfs(rect, up_is_positive):
+            if rect in seen:
+                return
+            seen.add(rect)
+            for group in neighbors(rect, up_is_positive):
+                for neighbor, newuip in group:
+                    if neighbor in rects:
+                        dfs(neighbor, newuip)
+                        break
 
+        start = min(filter(lambda r: orientation(r) == "z", rects), key=lambda x: min(y[2] for y in x))
+        dfs(start, False)
 
-
-
-
-        return len(new_rects)
+        return len(seen)
 
 
 
